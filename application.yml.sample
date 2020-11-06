@@ -1,0 +1,97 @@
+spring:
+  oauth2:
+    sso:
+      home:
+        secure: true
+        path: /,/**/*.html
+    client:
+      accessTokenUri: http://localhost:8080/fenix/oauth/access_token
+      userAuthorizationUri: http://localhost:8080/fenix/oauth/userdialog
+      clientId:
+      clientSecret: 
+      clientAuthenticationScheme: form
+      authenticationScheme: query
+    resource:
+      userInfoUri: http://localhost:8080/fenix/api/fenix/v1/person
+      preferTokenInfo: false
+
+dataclient:
+    uri: http://localhost:8080/fenix
+    serverId: 
+    serverSecret: 
+
+security:
+  user:
+    password: none
+
+pedagogico:
+  users: ist1234,ist56789
+
+---
+spring:
+  profiles: development
+  datasource:
+    url: jdbc:mysql://localhost:10000/sfbs_delegados?autoReconnect=true
+    username: xYxY
+    password: !xpto#01Xyz
+    driverClassName: com.mysql.jdbc.Driver
+    test-on-borrow: true
+    validation-query: SELECT 1
+  jpa:
+    database: MYSQL
+    hibernate:
+      ddl-auto: update
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+      dialect: org.hibernate.dialect.MySQLInnoDBDialect
+      CharSet: utf8
+      charactorEncoding: utf8
+      useUnicode: true
+      
+---
+spring:
+  profiles: production
+  datasource:
+    url: jdbc:mysql://host/delegados?autoReconnect=true
+    username: delegados
+    password: 
+    driverClassName: com.mysql.jdbc.Driver
+    test-on-borrow: true
+    validation-query: SELECT 1
+  jpa:
+    database: MYSQL
+    hibernate:
+      ddl-auto: update
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+      dialect: org.hibernate.dialect.MySQLInnoDBDialect
+      CharSet: utf8
+      charactorEncoding: utf8
+      useUnicode: true
+  oauth2:
+    sso:
+      home:
+        secure: true
+        path: /,/**/*.html
+    client:
+      accessTokenUri: https://fenix.tecnico.ulisboa.pt/oauth/access_token
+      userAuthorizationUri: https://fenix.tecnico.ulisboa.pt/oauth/userdialog
+      clientId: 
+      clientSecret: 
+      uri: https://fenix.tecnico.ulisboa.pt
+      serverId: 
+      serverSecret: 
+      clientAuthenticationScheme: form
+      authenticationScheme: query
+    resource:
+      userInfoUri: https://fenix.tecnico.ulisboa.pt/api/fenix/v1/person
+      preferTokenInfo: false
+  logging:
+    level:
+      org:
+        apache:
+          catalina:
+            valves:
+              RemoteIpValve: DEBUG
+
+tomcat:
+    proxyname:
+        eleicoes.delegados.tecnico.ulisboa.pt

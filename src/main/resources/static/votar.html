@@ -1,0 +1,139 @@
+<div  ng-controller="voteCtrl">
+	<div>
+		<!-- Default panel contents -->
+		<h3>{{'DETAILS' | translate}}</h3>
+		
+		<!-- Table -->
+		<dl class="dl-entity-horizontal">
+			<dt>{{'COURSE' | translate}}</dt>
+			<dd>{{degree.name}}</dd>
+			<dt>{{'CURRENT_YEAR' | translate}}</dt>
+			<dd>{{degree.academicYear}}</dd>
+			<dt>{{'APPLICATIONS' | translate}}</dt>
+			<dd>{{candidatos.length}}</dd>
+			<dt>{{'ELECTION_PERIOD' | translate}}</dt>
+			<dd>{{degree.currentPeriod.start}} - {{degree.currentPeriod.end}}</dd>
+		</dl>
+	</div>
+	
+	<h3>{{'ELECTION' | translate}}</h3>
+	<div ng-show="loaded">
+		<div class="container" ng-show="voted">
+			<div class="alert alert-info alert-dismissible" role="alert">
+				<button type="button" class="close" data-dismiss="alert"><span class="sr-only">Close</span></button>
+				<i class="icon icon-info"></i><strong>   </strong> {{'ALREADY_VOTED' | translate}}
+			</div>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>{{'NAME' | translate}}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<td ng-show="voto && voto != null">
+						<img class="avatar" ng-src="{{imgURL(voto.username)}}">
+						{{voto.name}}
+						<span class="detail">{{voto.username}}</span>
+					</td>
+					<td ng-show="voto == null">
+						{{'BLANK_VOTE' | translate}}
+					</td>
+				</tbody>
+			</table>
+		</div>
+		
+		<table class="table" ng-show="voted==false"> 
+			<thead>
+				<tr>
+					<th>{{'NAME' | translate}}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="candidato in candidatos | orderBy:'username'">
+					<td>
+						<input type="radio" ng-model="$parent.selected" value="{{candidato.username}}" name="voted"> <!-- $parent needed because ng-repeat creates its own scope -->
+						<img class="avatar" ng-src="{{imgURL(candidato.username)}}">
+						{{candidato.name}}
+						<span class="detail">{{candidato.username}}</span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<input type="radio" ng-model="selected" value="nil" name="voted">
+						{{'BLANK_VOTE' | translate}}
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<input type="radio" ng-model="selected" value="other" name="voted" ng-change="loadStudents()">  
+						{{'OTHER_1' | translate}}
+						<span class="detail">{{'OTHER_2' | translate}} {{search}}</span>
+						<tr ng-show="selected == 'other'">
+							<td>
+								<!-- <span class="glyphicon glyphicon-search"></span>-->
+								<div class="col-md-3 input-group">
+								    <span class="input-group-addon">
+								        <i class="glyphicon glyphicon-search"></i>
+								    </span>
+								    <input type="text" class="form-control" ng-model="query" ng-change="loadStudents(query)" ng-model-options="{ debounce: 300 }"/>
+								</div>	
+								<table class="table">
+									<tr ng-repeat="student in students | orderBy:'username'"  ng-hide="query==null || query==''">
+										<td>
+											<input type="radio" name="otherVoted" ng-model="$parent.otherSelected" value="{{student.username}}">
+											<img class="avatar" ng-src="{{imgURL(student.username)}}">
+											{{student.name}}
+											<span class="detail">{{student.username}}</span>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<button class="btn btn-primary" data-toggle="modal" data-target="#voteModal" ng-hide="voted" ng-click="selection()"
+			ng-disabled="selected == '' || (selected == 'other' && (otherSelected == '' || otherSelected == null)) || selected == null">Votar</button>
+	
+		<div id="voteModal" class="modal fade" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h3>
+							{{'VOTE_CONFIRMATION' | translate}}
+						</h3>
+						<small>{{'VOTE_CONFIRMATION_SUBTITLE' | translate}}</small>
+					    <button type="button" class="close" data-dismiss="modal"></button>
+					</div>
+					<div class="modal-body">
+		        		<dl class="dl-entity-horizontal">
+								<dt>{{'COURSE' | translate}}</dt>
+								<dd>{{degree.name}}</dd>
+								<dt>{{'CURRENT_YEAR' | translate}}</dt>
+								<dd>{{degree.academicYear}}</dd>
+								<dt>{{'CURRICULAR_YEAR' | translate}}</dt>
+								<dd>{{degree.curricularYear}}</dd>
+								<dt>{{'ELECTION_PERIOD' | translate}}</dt>
+								<dd>{{degree.currentPeriod.start}} - {{degree.currentPeriod.end}}</dd>
+						</dl>
+						<br>
+						<p>
+							{{'VOTE_CONFIRMATION_TEXT' | translate}} {{selectionResult}}?
+						</p>
+		      		</div>
+		      		<div class="modal-footer">
+		        			<button type="button" class="btn btn-default" data-dismiss="modal">{{'CANCEL' | translate}}</button>
+		        			<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="vote()">{{'ACCEPT' | translate}}</button>
+		      		</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="alert alert-success alert-dismissible alert-floating" style="position:absolute; top:60px; right:30px" role="alert" ng-show="feedback">
+			<button type="button" class="close" data-dismiss="alert"><span class="sr-only">Close</span></button>
+			<i class="icon icon-check"></i><strong>{{'VOTE_SUCCESS_1' | translate}}</strong>{{'VOTE_SUCCESS_2' | translate}}
+		</div>
+	</div>
+</div>
+

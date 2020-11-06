@@ -1,0 +1,8 @@
+<div class="container" ng-controller="tablesCtrl">
+	<div class="page-header">
+		<h1>Gestão de Eleições</h1>
+		<h3>{{active}}</h3>
+	</div>
+	<div ng-include="'tabelas.html'" ng-show="!details"></div>
+	<div ng-include="'detalhes.html'" ng-show="details"></div>
+</div>

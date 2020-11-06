@@ -1,0 +1,21 @@
+1-Para a persistencia funcionar, precisam de ter uma base de dados MYSQL com os seguintes parametros:
+
+jdbc:mysql://localhost:3306/persistency
+BD na porta 3306 e com o nome persistency
+
+username = root
+password = root
+
+Alternativamente:
+Alterem application.yml para a vossa DB local
+
+2-Correr mvn -Dspring.profiles.active=development spring-boot:run
+
+3-Correr o comando ssh -p 2000 user@localhost com a password que esta no application.yml (security.user.password)
+(em windows usar putty/gitbash ou derivados)
+3.1-Correr o comando testCalendar e aguardar 30-40 minutos
+
+4-Quando o comando terminar aceder a localhost:8080
+
+extra
+para acesso as features do pedagogico, adicionar o istid ao ficheiro application.yml

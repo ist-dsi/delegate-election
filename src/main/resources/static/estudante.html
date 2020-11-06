@@ -1,0 +1,58 @@
+<div class="container" ng-controller="electionCtrl" translate-cloak>
+
+		<div class="page-header">
+			<div class="pull-right">
+				<a href="#" ng-click="changeLanguage('ptPT')">
+					PT
+				</a>
+				/
+				<a href="#" ng-click="changeLanguage('enGB')">
+					EN
+				</a>
+			</div>
+			<h1>{{subTitle | translate}}</h1>
+			<h3>{{'PAGE_SUBTITLE' | translate}}</h3>
+		</div>
+		
+		<!-- This needs changing to accomodate students with multiple degrees-->
+		
+		<div ng-show="authenticated"> <!-- missing student check -->
+			
+			<div ng-show="degrees.length > 1">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>
+										{{'COURSE' | translate}}
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="deg in degrees">
+								<td class="col-md-1">
+									<input type="radio" ng-model="$parent.selection" value="{{$index}}">
+									{{deg.name}}
+								</td>
+							</tr>
+							</tbody>
+						</table>
+				<button class="btn btn-primary" ng-click="setDegree()">{{'SELECT' | translate}}</button> 
+			</div>
+
+			<div ng-include="'candidatar.html'" ng-show="degree != null && degree.currentPeriod.type=='APPLICATION'">
+			</div>
+
+			<div ng-include="'votar.html'" ng-show="degree != null && degree.currentPeriod.type=='ELECTION'">
+			</div>
+
+			<div class="empty" ng-show="degree.currentPeriod.type!='APPLICATION' && degree.currentPeriod.type!='ELECTION' && (degrees.length == 1 || showEmpty)">
+				<p>
+					<span>
+						<i class="glyphicon glyphicon-calendar"></i>
+						{{'NO_CURRENT_ELECTION' | translate}}
+					</span>
+					<span class="detail" ng-show="nextPeriod">{{'NEXT_PERIOD_1' | translate}} {{start}} {{'NEXT_PERIOD_2' | translate}} {{end}}</span>
+				</p>
+			</div>
+		</div>
+</div>

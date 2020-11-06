@@ -1,0 +1,82 @@
+<div ng-controller="applyCtrl as apply" ng-cloak>
+
+	<div>
+		<!-- Default panel contents -->
+		<h3>{{'DETAILS' | translate}}</h3>
+		
+		<dl class="dl-entity-horizontal">
+			<dt>{{'COURSE' | translate}}</dt>
+			<dd>{{degree.name}}</dd>
+			<dt>{{'CURRENT_YEAR' | translate}}</dt>
+			<dd>{{degree.academicYear}}</dd>
+			<dt>{{'CURRICULAR_YEAR' | translate}}</dt>
+			<dd>{{degree.curricularYear}}</dd>
+			<dt>{{'APPLICATION_PERIOD' | translate}}</dt>
+			<dd>{{degree.currentPeriod.start}} - {{degree.currentPeriod.end}}</dd>
+		</dl>
+	</div>
+	
+	<h3>{{'CANDIDATES' | translate}}</h3>
+	<div ng-show="loaded==true">
+		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#applyModal" ng-show="!applied && loaded">
+			<i class="glyphicon glyphicon-plus"></i>
+			{{'APPLY' | translate}}
+		</button>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>{{'NAME' | translate}}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="candidato in candidatos | orderBy:'name'">
+					<td>
+						<img class="avatar" class="center-block" ng-src="{{imgURL(candidato.username)}}"></img>
+						{{candidato.name}}
+						<span class="detail">{{candidato.username}}</span>
+						<button type="button" class="pull-right close" ng-show="candidato.username == credentials.username" ng-click="unapply()"></button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	
+		<div id="applyModal" class="modal fade" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h3>
+							{{'APPLICATION_CONFIRMATION' | translate}}
+						</h3>
+						<small>{{'APPLICATION_CONFIRMATION_SUBTITLE' | translate}}</small>
+					    <button type="button" class="close" data-dismiss="modal"></button>
+					</div>
+					<div class="modal-body">
+		        		<dl class="dl-entity-horizontal">
+								<dt>{{'CANDIDATE' | translate}}</dt>
+								<dd>{{credentials.name}}</dd>
+								<dt>{{'COURSE' | translate}}</dt>
+								<dd>{{degree.name}}</dd>
+								<dt>{{'CURRENT_YEAR' | translate}}</dt>
+								<dd>{{degree.academicYear}}</dd>
+								<dt>{{'CURRICULAR_YEAR' | translate}}</dt>
+								<dd>{{degree.curricularYear}}</dd>
+								<dt>{{'APPLICATIONS' | translate}}</dt>
+								<dd>{{candidatos.length}}</dd>
+								<dt>{{'ELECTION_PERIOD' | translate}}</dt>
+								<dd>{{degree.currentPeriod.start}} - {{degree.currentPeriod.end}}</dd><!-- need election period date -->
+						</dl>
+		      		</div>
+		      		<div class="modal-footer">
+		        			<button type="button" class="btn btn-default" data-dismiss="modal">{{'CANCEL' | translate}}</button>
+		        			<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="apply()">{{'ACCEPT' | translate}}</button>
+		      		</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="alert alert-success alert-dismissible alert-floating" style="position:absolute; top:60px; right:30px" role="alert" ng-show="feedback">
+			<button type="button" class="close" ng-click="feedback = false;"><span class="sr-only">Close</span></button>
+			<i class="icon icon-check"></i><strong>{{'APPLICATION_SUCCESS_1' | translate}}</strong>{{'APPLICATION_SUCCESS_2' | translate}}
+		</div>
+	</div>
+</div>

@@ -1,0 +1,279 @@
+<div>
+
+	<br></br>
+
+	<div class="row">
+		<button class="btn btn-primary" data-toggle="modal" data-target="#bulkModal" ng-disabled='selection.length == 0' ng-click="setBulkEdit()">
+			<i class="glyphicon glyphicon-pencil"></i> Definir
+		</button>
+	
+		<div class="btn-group pull-right text-left">
+			<button class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+				aria-haspopup="true" aria-expanded="false">
+				Filtrar <i class="caret"></i>
+			</button>
+	
+			<ul class="dropdown-menu">
+				<li ng-click="filterDegrees('Todos')"><a>Todos</a></li>
+				<li ng-click="filterDegrees('Licenciatura Bolonha')"><a>Licenciatura Bolonha</a></li>
+				<li ng-click="filterDegrees('Mestrado Bolonha')"><a>Mestrado Bolonha</a></li>
+				<li ng-click="filterDegrees('Mestrado Integrado')"><a>Mestrado Integrado</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<p></p>
+
+	<div class="row">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th class="col-md-2"><input type="checkbox"	ng-checked="allSelected" ng-click="toggleSelectAll()"> <strong>Curso</strong></th>
+					<th class="col-md-2"><strong>1º ano</strong></th>
+					<th class="col-md-2"><strong>2º ano</strong></th>
+					<th class="col-md-2"><strong>3º ano</strong></th>
+					<th class="col-md-2"><strong>4º ano</strong></th>
+					<th class="col-md-2"><strong>5º ano</strong></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="degree in filteredDegrees() | orderBy: 'degree'">
+					<td><input id="{{degree.degree}}" type="checkbox"
+						value="{{degree.degree}}"
+						ng-checked="selection.indexOf(degree.degree) > -1"
+						ng-click="toggleSelection(degree.degree)" /> {{degree.degree}}</td>
+					<td ng-repeat="year in degree.years">
+						<div class="dropdown pull-right">
+							<i class="glyphicon glyphicon-option-vertical dropdown-toggle" data-toggle="dropdown"
+								aria-haspopup="true" aria-expanded="false"></i> <!-- should use option-vertical icon -->
+					
+							<ul class="dropdown-menu">
+								<li ng-show="isEmpty(year.applicationPeriod) || year.applicationPeriod.state == 'passado'" data-toggle="modal" data-target="#editModal"
+									ng-click="setSelectionDetails('Candidatura', 'Criar', degree, year)">
+									<a href="#">Criar - Candidatura</a></li>
+								<li ng-show="isEmpty(year.electionPeriod) || year.electionPeriod.state == 'passado'" data-toggle="modal" data-target="#editModal" 
+									ng-click="setSelectionDetails('Votação', 'Criar', degree, year)">
+									<a href="#">Criar - Votação</a></li>
+								<li ng-show="!isEmpty(year.applicationPeriod) && year.applicationPeriod.state != 'passado'" data-toggle="modal" data-target="#editModal"
+									ng-click="setSelectionDetails('Candidatura', 'Estender', degree, year)">
+									<a href="#">Estender - Candidatura</a></li>
+								<li ng-show="!isEmpty(year.electionPeriod) && year.electionPeriod.state != 'passado'" data-toggle="modal" data-target="#editModal"
+									ng-click="setSelectionDetails('Votação', 'Estender', degree, year)">
+									<a href="#">Estender - Votação</a></li>
+								<li ng-show="!isEmpty(year.applicationPeriod) && year.applicationPeriod.state=='futuro'" data-toggle="modal" data-target="#removeModal"
+									ng-click="setSelectionDetails('Candidatura', 'Remover', degree, year)">
+									<a href="#">Remover - Candidatura</a></li>
+								<li ng-show="!isEmpty(year.electionPeriod) && year.electionPeriod.state=='futuro'" data-toggle="modal" data-target="#removeModal"
+									ng-click="setSelectionDetails('Votação', 'Remover', degree, year)">
+									<a href="#">Remover - Votação</a></li>
+								<li><a href="#" ng-click="showDetails(degree, $index+1)">Detalhes</a></li>
+							</ul>
+						</div>
+						<div>
+							<span>
+								<strong>C:</strong>
+								<span ng-show="!year.applicationPeriod || isEmpty(year.applicationPeriod)"><small></small></span>
+								<span ng-show="!isEmpty(year.applicationPeriod) && (year.applicationPeriod.state =='presente' || year.applicationPeriod.state == 'futuro')">
+									{{year.applicationPeriod.applicationPeriodStart}} – {{year.applicationPeriod.applicationPeriodEnd}}</span>
+								<span ng-show="!isEmpty(year.applicationPeriod) && year.applicationPeriod.state == 'passado'">
+									{{year.applicationPeriod.candidateCount}} candidatos</span>
+							</span>
+							<br>
+							<span>
+								<strong>V:</strong>
+								<span ng-show="!year.electionPeriod || isEmpty(year.electionPeriod)"><small></small></span>
+								<span ng-show="!isEmpty(year.electionPeriod) && (year.electionPeriod.state == 'presente' || year.electionPeriod.state == 'futuro')">
+									{{year.electionPeriod.electionPeriodStart}} – {{year.electionPeriod.electionPeriodEnd}}</span>
+								<span ng-show="!isEmpty(year.electionPeriod) && year.electionPeriod.state == 'passado'">
+									{{year.electionPeriod.voteCount}} votos</span>
+							</span>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="editModal" class="modal fade" role="dialog" ng-controller="modalCtrl">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3>
+						{{selectedPeriodOperation()}} Período de {{selectedPeriodType()}}
+					</h3>
+					<span>Defina as datas de início e fim do período de {{selectedPeriodType()}}</span>
+				    <button type="button" class="close" data-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+	        		<dl class="dl-entity-horizontal">
+							<dt>Curso</dt>
+							<dd>{{selectedDegree().degree}}</dd>
+							<dt>Ano Lectivo</dt>
+							<dd>{{selectedDegree().academicYear}}</dd>
+							<dt>Ano Curricular</dt>
+							<dd>{{selectedYear().degreeYear}}</dd>
+							<dt>Período de {{selectedPeriodType()}}</dt>
+							<dd>
+					            <div class="input-group">
+					              <input type="text" class="form-control" datepicker-popup="dd/MM/yyyy" ng-model="start" is-open="status.startOpened" min-date="minDate" max-date="maxDate" ng-required="true" current-text="Hoje" clear-text="Limpar" close-text="Fechar" />
+					              <span class="input-group-btn">
+					                <button type="button" class="btn btn-default" ng-click="openStart($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+					              </span>
+					              <span class="input-group-addon"> a </span>
+					              <input type="text" class="form-control" datepicker-popup="dd/MM/yyyy" ng-model="end" is-open="status.endOpened" min-date="minDate" max-date="maxDate" ng-required="true" current-text="Hoje" clear-text="Limpar" close-text="Fechar" />
+					              <span class="input-group-btn">
+					                <button type="button" class="btn btn-default" ng-click="openEnd($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+					              </span>
+					            </div>
+							</dd>
+					</dl>
+	      		</div>
+	      		<div class="modal-footer">
+	        			<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+	        			<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="edit()">Confirmar</button>
+	      		</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="removeModal" class="modal fade" role="dialog" ng-controller="removeModalCtrl">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3>
+						Remover Período de {{selectedPeriodType()}}
+					</h3>
+					<span>Tem a certeza que deseja remover o período de {{selectedPeriodType()}}</span>
+				    <button type="button" class="close" data-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+	        		<dl class="dl-entity-horizontal">
+							<dt>Curso</dt>
+							<dd>{{selectedDegree().degree}}</dd>
+							<dt>Ano Lectivo</dt>
+							<dd>{{selectedDegree().academicYear}}</dd>
+							<dt>Ano Curricular</dt>
+							<dd>{{selectedYear().degreeYear}}</dd>
+					</dl>
+	      		</div>
+	      		<div class="modal-footer">
+	        			<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+	        			<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="remove()">Confirmar</button>
+	      		</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="bulkModal" class="modal fade" role="dialog" ng-controller="bulkCtrl">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"></button>
+					<h3>
+						Definir Período
+					</h3>
+					<small>Defina as datas de início e fim dos períodos</small>
+				</div>
+				<div class="modal-body">
+	        		<form class="form-horizontal">
+						<div class="form-group">
+							<label class="control-label col-sm-4" ng-show="selection.length == 1">Curso</label>
+							<label class="control-label col-sm-4" ng-show="selection.length > 1">Cursos</label>
+							<div class="col-sm-8">
+								<ul class="list-inline">
+									<li ng-repeat="degree in selection">
+										{{degree}}
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-4">Ano Lectivo</label>
+							<div class="col-sm-8">
+								<p class="form-control-static">{{academicYear()}}</p>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-4">Ano Curricular</label>
+							<div class="col-sm-8">
+								<ul class="list-inline">
+									<li>
+										 <div class="checkbox">
+										 	<label>
+										    	<input type="checkbox" ng-model="years[1]">1º
+										   	</label>
+										 </div>
+									</li>
+									<li>
+										<div class="checkbox">
+										 	<label>
+										    	<input type="checkbox" ng-model="years[2]">2º
+										   	</label>
+										 </div>
+									</li>
+									<li>
+										<div class="checkbox">
+										 	<label>
+										    	<input type="checkbox" ng-model="years[3]">3º
+										   	</label>
+										 </div>
+									</li>
+									<li>
+										<div class="checkbox">
+										 	<label>
+										    	<input type="checkbox" ng-model="years[4]">4º
+										   	</label>
+										 </div>
+									</li>
+									<li>
+										<div class="checkbox">
+										 	<label>
+										    	<input type="checkbox" ng-model="years[5]">5º
+										   	</label>
+										 </div>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-4">Período de candidatura</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+					              <input type="text" class="form-control" datepicker-popup="dd/MM/yyyy" ng-model="applicationStart" is-open="status.AppStartOpened" min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" ng-required="true" current-text="Hoje" clear-text="Limpar" close-text="Fechar" />
+					              <span class="input-group-btn">
+					                <button type="button" class="btn btn-default" ng-click="openAppStart($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+					              </span>
+					              <span class="input-group-addon"> a </span>
+					              <input type="text" class="form-control" datepicker-popup="dd/MM/yyyy" ng-model="applicationEnd" is-open="status.AppEndOpened" min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" ng-required="true" current-text="Hoje" clear-text="Limpar" close-text="Fechar" />
+					              <span class="input-group-btn">
+					                <button type="button" class="btn btn-default" ng-click="openAppEnd($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+					              </span>
+					            </div>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-4">Período de votação</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+					              <input type="text" class="form-control" datepicker-popup="dd/MM/yyyy" ng-model="electionStart" is-open="status.ElecStartOpened" min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" ng-required="true" current-text="Hoje" clear-text="Limpar" close-text="Fechar" />
+					              <span class="input-group-btn">
+					                <button type="button" class="btn btn-default" ng-click="openElecStart($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+					              </span>
+					              <span class="input-group-addon"> a </span>
+					              <input type="text" class="form-control" datepicker-popup="dd/MM/yyyy" ng-model="electionEnd" is-open="status.ElecEndOpened" min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" ng-required="true" current-text="Hoje" clear-text="Limpar" close-text="Fechar" />
+					              <span class="input-group-btn">
+					                <button type="button" class="btn btn-default" ng-click="openElecEnd($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+					              </span>
+					            </div>
+							</div>
+						</div>
+					</form>
+	      		</div>
+	      		<div class="modal-footer">
+	        			<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+	        			<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="bulkEdit()">Confirmar</button>
+	      		</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,232 @@
+<div class="container" ng-controller="detailsCtrl">
+
+	<div>
+		<!-- Default panel contents -->
+		<h3>Detalhes</h3>
+		
+		<!-- Table -->
+		<div class="row">
+			<dl class="dl-entity-horizontal">
+					<dt>Curso</dt>
+					<dd>{{history().degreeName}}</dd>
+					<dt>Ano Lectivo</dt>
+					<dd>{{currentYear}}</dd>
+					<dt>Ano Curricular</dt>
+					<dd>{{history().degreeYear}}</dd>
+					<dt>Candidaturas</dt>
+					<dd>{{getCurrentApplication().applicationPeriodStart}} – {{getCurrentApplication().applicationPeriodEnd}}
+						<span ng-show="getCurrentApplication().state == 'presente'"> - A decorrer</span>
+						<span ng-show="getCurrentApplication().state == 'passado'"> - Terminado</span>
+						<div ng-hide="isEmpty(getCurrentApplication()) || getCurrentApplication().state == 'futuro'">{{getCurrentApplication().candidateCount}} candidatos</div>
+					</dd>
+					<dt >Votação</dt>
+					<dd>{{getCurrentElection().electionPeriodStart}} – {{getCurrentElection().electionPeriodEnd}}			
+						<span ng-show="getCurrentElection().state == 'presente'"> - A decorrer</span>
+						<span ng-show="getCurrentElection().state == 'passado'"> - Terminado</span>
+						<div ng-hide="isEmpty(getCurrentElection()) ||getCurrentElection().state == 'futuro'">{{getCurrentElection().voteCount}} votos</div>
+					</dd>
+			</dl>
+		</div>
+	</div>
+	
+	<h3>Candidatos</h3>
+<!-- 	<button ng-show="getCurrentApplication().state == 'presente' || getCurrentElection().state == 'presente'" class="btn btn-primary" ng-click="triggerFocus()"> -->
+<!-- 		Adicionar -->
+<!-- 	</button> -->
+	
+	<div ng-show="getCurrentApplication().state == 'presente' || getCurrentElection().state == 'presente'" class="row"> 
+		<button class="btn btn-primary pull-right" ng-hide="add" ng-click="setAdd(true)"><span class="glyphicon glyphicon-plus"></span>Adicionar</button> 
+		<div class="col-md-4 dropdown pull-right" ng-show="add" style="position: relative;">
+			<i class="icon icon-search" style="position: absolute;top: 8px;left: 20px;color: rgb(187, 187, 187);"></i>
+			<input id="dLabel" class="form-control" type="text" placeholder="Novo…" ng-model="query" ng-change="loadStudents(query)" ng-model-options="{ debounce: 300 }" 
+				data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding-left: 28px;"/>
+			<table class="table table-hover dropdown-menu" ng-show="!isEmpty(students)" 
+				style="margin: 0 0 0 -10px; border: 1px solid #ddd;"  aria-labelledby="dLabel">
+				<tbody>
+					<tr class="col-md-12" ng-repeat="student in students">
+						<td>
+							{{student.name}}
+							<span class="detail" style="vertical-align: -webkit-baseline-middle; display: inline-table;">{{student.username}}</span>
+							<button ng-show="true" class="btn btn-default btn-xs pull-right" ng-click="addCandidate(student.username)">Adicionar</button>
+						</td>	
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div ng-hide="getCandidates().length >= 1" class="empty">
+		<p>
+			<i class="glyphicon glyphicon-user"></i><span>Sem candidatos</span>
+		</p>
+	</div>
+	
+	<div class="row" ng-hide="getCandidates().length < 1">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th class="col-md-6"><strong>Nome</strong></th>
+					<th class="col-md-2" ng-show="getCurrentElection().state && getCurrentElection().state != 'futuro'"><strong>Auto-proposto</strong></th>
+					<th ng-show="getCurrentElection().state && getCurrentElection().state != 'futuro'"><strong>Nº de Votos</strong></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="candidate in getCandidates() | orderBy:'-votes'">
+					<td>
+						<img class="avatar" ng-src="{{imgURL(candidate.username)}}">
+						 {{candidate.name}}<span class="detail">{{candidate.username}}</span>
+					</td>
+					<td ng-show="getCurrentElection().state && getCurrentElection().state != 'futuro'">
+						<span ng-show="candidate.selfProposed"><i class="glyphicon glyphicon-check"></i></span>
+						<span ng-hide="candidate.selfProposed"></span>
+					</td>
+					<td ng-show="getCurrentElection().state && getCurrentElection().state != 'futuro'">{{candidate.votes}}
+						<span class="pull-right" ng-show="getCurrentElection().state == 'passado'">
+							<button class="btn btn-default btn-xs" ng-click="assign(candidate.username, degreeAcronym(), history().degreeYear)">Atribuir</button>
+						</span>
+					</td>
+				</tr>
+				<tr ng-show="getCurrentElection().state && getCurrentElection().state != 'futuro' && getCandidates().blank">
+					<td>
+						Votos em branco
+					</td>
+					<td>
+					</td>
+					<td>
+						{{getCandidates().blank}}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+					
+	<h3>Histórico</h3>
+	<div ng-show="isEmpty(history().periods)" class="empty">
+		<p>
+			<i class="glyphicon glyphicon-calendar"></i><span>Sem histórico</span>
+		</p>
+	</div>
+	
+	<div ng-hide="isEmpty(history().periods)" class="row">
+		<table class="table table-hover">
+			<thead>
+			<tr>
+				<th class="col-md-3"><strong>Ano-lectivo</strong></th>
+				<th class="col-md-2"><strong>Tipo</strong></th>
+				<th><strong>Período</strong></th>
+			</tr>
+		</thead>
+			<tbody>
+				<tr ng-repeat="period in history().periods">
+					<td>{{period.academicYear}}</td>
+					<td ng-show="period.periodType=='APPLICATION'">Candidatura</td>
+					<td ng-show="period.periodType=='ELECTION'">Votação</td>
+					<td>
+						<span>
+							<button class="btn btn-default btn-xs pull-right" data-toggle="modal" data-target="#historyModal" ng-click="inspectPeriod($index)">
+								Detalhes
+							</button>
+						</span>
+						{{period.start}} – {{period.end}}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="historyModal" class="modal fade" role="dialog" ng-controller="historyCtrl">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3>
+						Histórico
+					</h3>
+					<span class="detail">{{history().degreeName}} - {{inspectedPeriod().academicYear}}</span>
+				    <button type="button" class="close" data-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<h3>Detalhes</h3>
+					
+					<!-- Table -->
+					<div class="row">
+						<dl class="dl-entity-horizontal">
+								<dt>Curso</dt>
+								<dd>{{history().degreeName}}</dd>
+								<dt>Ano Lectivo</dt>
+								<dd>{{inspectedPeriod().academicYear}}</dd>
+								<dt>Ano Curricular</dt>
+								<dd>{{history().degreeYear}}</dd>
+								<dt ng-show="inspectedPeriod().periodType == 'APPLICATION'">Candidaturas</dt>
+								<dt ng-show="inspectedPeriod().periodType == 'ELECTION'">Votação</dt>
+								<dd>{{inspectedPeriod().start}} – {{inspectedPeriod().end}}
+									<p>
+										<span ng-show="inspectedPeriod().periodType == 'APPLICATION'">{{candidates().length}} candidatos</span>
+										<span ng-show="inspectedPeriod().periodType == 'ELECTION'">{{inspectedPeriod().info}} votos</span>
+									</p>
+								</dd>
+						</dl>
+					</div>
+					
+					<h3>Candidatos</h3>
+					
+					<div ng-hide="candidates().length >= 1" class="empty">
+						<p>
+							<i class="glyphicon glyphicon-user"></i><span>Sem candidatos</span>
+						</p>
+					</div>
+					
+					<div class="row" ng-hide="candidates().length < 1">
+						<table class="table table-hover">
+							<thead>
+							<tr>
+								<th class="col-md-8"><strong>Nome</strong></th>
+								<th class="col-md-2" ng-show="inspectedPeriod().periodType=='ELECTION'"><strong>Auto-proposto</strong></th>
+								<th ng-show="inspectedPeriod().periodType=='ELECTION'"><strong>Nº de Votos</strong></th>
+							</tr>
+						</thead>
+							<tbody>
+								<tr ng-repeat="candidate in candidates() | orderBy:'-votes'">
+									<td>
+										<img class="avatar"  ng-src="{{imgURL(candidate.username)}}">
+										 {{candidate.name}}<span class="detail">{{candidate.username}}</span>
+									</td>
+									<td ng-show="inspectedPeriod().periodType=='ELECTION'">
+										<span ng-show="candidate.selfProposed"><i class="glyphicon glyphicon-check"></i></span>										
+										<span ng-hide="candidate.selfProposed"></span></td>
+									<td ng-show="inspectedPeriod().periodType=='ELECTION'">{{candidate.votes}}
+									</td>
+								</tr>
+								<tr ng-show="inspectedPeriod().periodType=='ELECTION' && candidates().blank">
+									<td>
+										Votos em branco
+									</td>
+									<td>
+									</td>
+									<td>
+										{{candidates().blank}}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+	      		</div>
+	      		<div class="modal-footer">
+	        			<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
+	      		</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="alert alert-success alert-floating alert-dismissable" role="alert" style="position:absolute; top:60px; right:30px" ng-show="assignementSuccess == true">
+		<button type="button" class="close" data-dismiss="alert"><span class="sr-only">Close</span></button>
+		<i class="icon icon-check"></i><strong> Sucesso! </strong> O cargo de delegado foi atribuido com sucesso.
+	</div>
+	
+	<div class="alert alert-danger alert-floating alert-dismissable" role="alert" style="position:absolute; top:60px; right:30px" ng-show="assignementSuccess == false">
+		<button type="button" class="close" data-dismiss="alert"><span class="sr-only">Close</span></button>
+		<i class="glyphicon glyphicon-alert"></i><strong> Erro! </strong> O cargo de delegado não foi atribuido com sucesso.
+	</div>
+	
+	<button class="btn btn-default" ng-click="hideDetails(); setAdd(false)">Voltar</button>
+</div>
